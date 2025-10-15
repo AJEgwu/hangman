@@ -7,6 +7,7 @@ import LetterBox from './LetterBox';
 import SingleLetterSearchbar from './SingleLetterSearchBar';
 import MissedLettersList from './MissedLettersList';
 import PopupModal from './PopupModal';
+import Keyboard from './Keyboard';
 
 const pics = ['noose.png', 'upperbody.png', 'upperandlowerbody.png', '1arm.png', 'botharms.png', '1leg.png', 'Dead.png'];
 const words = ["Morehouse", "Spelman", "Basketball", "Table", "Museum", "Excellent", "Fun", "React"];
@@ -99,7 +100,13 @@ class HangmanGame extends React.Component {
         <HangmanImage imageSrc={pics[wrongGuessCount]} />
 
         <div style={{ margin: '20px 0' }}>
-          <p>Tries Left: {triesLeft}</p>
+          <p style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: triesLeft <= 2 ? '#d32f2f' : '#333'
+          }}>
+            Tries Left: {triesLeft}
+          </p>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '20px' }}>
@@ -117,6 +124,8 @@ class HangmanGame extends React.Component {
         <SingleLetterSearchbar onSearch={this.handleGuess} />
 
         <MissedLettersList missedLetters={missedLetters} />
+
+        <Keyboard guessedLetters={guessedLetters} onLetterClick={this.handleGuess} />
 
         <NewGameButton onNewGame={this.startNewGame} />
 
