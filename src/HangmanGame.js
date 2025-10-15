@@ -1,50 +1,129 @@
 import './App.css';
 import React from 'react';
+import Header from './Header';
+import NewGameButton from './NewGameButton';
+import HangmanImage from './HangmanImage';
 import LetterBox from './LetterBox';
 import SingleLetterSearchbar from './SingleLetterSearchBar';
+import MissedLettersList from './MissedLettersList';
+import PopupModal from './PopupModal';
 
-const pics = ['noose.png', 'upperBody.png', 'upperandlower.png', '1arm.png', 'botharms.png'];
+const pics = ['noose.png', 'upperbody.png', 'upperandlowerbody.png', '1arm.png', 'botharms.png', '1leg.png', 'Dead.png'];
 const words = ["Morehouse", "Spelman", "Basketball", "Table", "Museum", "Excellent", "Fun", "React"];
+const MAX_WRONG_GUESSES = 6;
+
 class HangmanGame extends React.Component {
   state = {
-    wordList: [],
-    curWord:  0,
-    lifeLeft: 0,
-    usedLetters: []
+    wordList: words,
+    curWord: 0,
+    guessedLetters: [],
+    missedLetters: [],
+    showModal: false,
+    gameWon: false
   }
+
   componentDidMount() {
-    
-    console.log(words);
-    this.setState({
-      wordList: words
-    });
+    this.startNewGame();
   }
-  getPlayerName = (name) => {
-    this.setState({
-      playerName: name
-    });
-  }
+
   startNewGame = () => {
     this.setState({
-      curWord: Math.floor(Math.random() * this.state.wordList.length)
+      curWord: Math.floor(Math.random() * this.state.wordList.length),
+      guessedLetters: [],
+      missedLetters: [],
+      showModal: false,
+      gameWon: false
     });
+  }
+
+  handleGuess = (letter) => {
+    const lowerLetter = letter.toLowerCase();
+    const { guessedLetters, missedLetters, wordList, curWord } = this.state;
+
+    // Ignore if already guessed
+    if (guessedLetters.includes(lowerLetter)) {
+      return;
+    }
+
+    const currentWord = wordList[curWord].toLowerCase();
+    const newGuessedLetters = [...guessedLetters, lowerLetter];
+
+    // Check if letter is in the word
+    if (currentWord.includes(lowerLetter)) {
+      this.setState({ guessedLetters: newGuessedLetters }, this.checkWin);
+    } else {
+      const newMissedLetters = [...missedLetters, lowerLetter];
+      this.setState({
+        guessedLetters: newGuessedLetters,
+        missedLetters: newMissedLetters
+      }, this.checkLoss);
+    }
+  }
+
+  checkWin = () => {
+    const { wordList, curWord, guessedLetters } = this.state;
+    const currentWord = wordList[curWord].toLowerCase();
+    const wordLetters = [...new Set(currentWord.split(''))];
+
+    const hasWon = wordLetters.every(letter => guessedLetters.includes(letter));
+
+    if (hasWon) {
+      this.setState({ showModal: true, gameWon: true });
+    }
+  }
+
+  checkLoss = () => {
+    const { missedLetters } = this.state;
+
+    if (missedLetters.length >= MAX_WRONG_GUESSES) {
+      this.setState({ showModal: true, gameWon: false });
+    }
+  }
+
+  closeModal = () => {
+    this.setState({ showModal: false });
+    this.startNewGame();
   }
 
   render(){
-    const word = this.state.wordList[this.state.curWord];
-    return(
-      <div>
-        <img src={pics[this.state.lifeLeft]}/>
-        <button onClick={this.startNewGame}>New Game</button>
-        <p>{word}</p>
-        <SingleLetterSearchbar></SingleLetterSearchbar>
+    const { wordList, curWord, guessedLetters, missedLetters, showModal, gameWon } = this.state;
+    const word = wordList[curWord];
+    const wrongGuessCount = missedLetters.length;
+    const triesLeft = MAX_WRONG_GUESSES - wrongGuessCount;
 
-        <LetterBox 
-          letter="a"
-          isVisible={true}
-          boxStyle={{ backgroundColor: 'lightblue' }}
-          letterStyle={{ color: 'white', fontSize: '30px' }}
-        ></LetterBox>
+    return(
+      <div style={{ textAlign: 'center', padding: '20px' }}>
+        <Header />
+
+        <HangmanImage imageSrc={pics[wrongGuessCount]} />
+
+        <div style={{ margin: '20px 0' }}>
+          <p>Tries Left: {triesLeft}</p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '20px' }}>
+          {word.split('').map((letter, index) => (
+            <LetterBox
+              key={index}
+              letter={letter}
+              isVisible={guessedLetters.includes(letter.toLowerCase())}
+              boxStyle={{ backgroundColor: 'lightblue' }}
+              letterStyle={{ color: 'black', fontSize: '30px' }}
+            />
+          ))}
+        </div>
+
+        <SingleLetterSearchbar onSearch={this.handleGuess} />
+
+        <MissedLettersList missedLetters={missedLetters} />
+
+        <NewGameButton onNewGame={this.startNewGame} />
+
+        <PopupModal
+          isOpen={showModal}
+          message={gameWon ? `You Won! The word was ${word}` : `You Lost! The word was ${word}`}
+          onClose={this.closeModal}
+        />
       </div>
     )
   }
