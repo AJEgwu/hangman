@@ -30,6 +30,12 @@ class SingleLetterSearchbar extends React.Component {
         });
     };
 
+    handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            this.handleSearchClick();
+        }
+    };
+
   render() {
     return (
       <div>
@@ -37,6 +43,7 @@ class SingleLetterSearchbar extends React.Component {
           type="text"
           value={this.state.inputValue}
           onChange={this.handleInputChange}
+          onKeyPress={this.handleKeyPress}
           maxLength={1}
         />
         <button onClick={this.handleSearchClick}>Search</button>

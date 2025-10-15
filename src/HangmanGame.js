@@ -40,8 +40,9 @@ class HangmanGame extends React.Component {
     const lowerLetter = letter.toLowerCase();
     const { guessedLetters, missedLetters, wordList, curWord } = this.state;
 
-    // Ignore if already guessed
+    // Show popup if already guessed
     if (guessedLetters.includes(lowerLetter)) {
+      alert(`You already guessed the letter "${lowerLetter.toUpperCase()}"!`);
       return;
     }
 
