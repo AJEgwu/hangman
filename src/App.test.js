@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import HangmanGame from './HangmanGame';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('renders Hangman game', () => {
+  render(<HangmanGame />);
+  const triesElement = screen.getByText(/Tries Left:/i);
+  expect(triesElement).toBeInTheDocument();
 });
