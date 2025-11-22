@@ -1,8 +1,46 @@
 version: '3.8'
 
 services:
-  hangman:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/home/dynamodblocal/data
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
+
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: dynamodb-admin
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+      - AWS_REGION=us-east-1
+    depends_on:
+      - dynamodb-local
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: hangman-api
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./server:/app/server
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DYNAMO_ENDPOINT=http://dynamodb-local:8000
+      - AWS_REGION=us-east-1
+    depends_on:
+      - dynamodb-local
+
+  frontend:
     build: .
+    container_name: hangman-frontend
     ports:
       - "3000:3000"
     volumes:
@@ -10,5 +48,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5001
     stdin_open: true
     tty: true
+    depends_on:
+      - api
